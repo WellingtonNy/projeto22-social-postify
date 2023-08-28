@@ -1,26 +1,70 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable ,ConflictException ,NotFoundException } from '@nestjs/common';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
+import { MediasRepository } from './medias.repository';
+
 
 @Injectable()
 export class MediasService {
-  create(createMediaDto: CreateMediaDto) {
-    return 'This action adds a new media';
+
+
+
+  async create(body: CreateMediaDto) {
+
+    const eMedia:any = await this.create(body)
+
+    if(eMedia){
+      throw new ConflictException()
+    }
+    return await this.create(body)
+
   }
 
-  findAll() {
-    return `This action returns all medias`;
+
+
+  async findAll() {
+
+    return await this.findAll()
+
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} media`;
+
+
+  async findOne(id: number) {
+
+    const eMedia = await this.findOne(id)
+
+    if (!eMedia) {
+      throw new NotFoundException()
+    }
+    return eMedia
+
   }
 
-  update(id: number, updateMediaDto: UpdateMediaDto) {
-    return `This action updates a #${id} media`;
+
+
+ async update(id: number, body: UpdateMediaDto) {
+
+    const eMedia = await this.findOne(id)
+
+    if (!eMedia) {
+      throw new NotFoundException()
+    }
+    return  await this.update(id,body)
+
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} media`;
+
+
+  async remove(id: number) {
+
+    const eMedia = await this.findOne(id)
+
+    if (!eMedia) {
+      throw new NotFoundException()
+    }
+
+    return this.remove(id)
   }
+
 }
