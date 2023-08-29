@@ -1,4 +1,4 @@
-import { Injectable ,ConflictException ,NotFoundException } from '@nestjs/common';
+import { Injectable ,ConflictException ,NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
 import { MediasRepository } from './medias.repository';
@@ -9,17 +9,14 @@ export class MediasService {
   constructor(private readonly mediasRepository: MediasRepository) {}
 
 
-  //fix me
+  //ok
   async create(body: CreateMediaDto) {
+const {title,username} = body
+const eMedia = await this.mediasRepository.findByTU(title,username)
 
-    //fix me
-    const eMedia = await this.mediasRepository.create(body)
+    if(eMedia) throw new HttpException('Media já existe',HttpStatus.CONFLICT)
 
-    if(!eMedia){
-      throw new ConflictException()
-    }
-    return await this.mediasRepository.create(body)
-
+    return await this.mediasRepository.create(body)  
   }
 
 
@@ -37,21 +34,22 @@ export class MediasService {
     const eMedia = await this.mediasRepository.findUnique(id)
 
     if (!eMedia) {
-      throw new NotFoundException()
+      throw new HttpException( 'Media not found',HttpStatus.NOT_FOUND )
     }
     return eMedia
-
   }
 
 
  //ok
  async update(id: number, body: UpdateMediaDto) {
 
-    const eMedia = await this.mediasRepository.findUnique(id)
+     await this.findOne(id)
 
-    if (!eMedia) {
-      throw new NotFoundException()
-    }
+    const {title,username} =body
+    const eMedia = await this.mediasRepository.findByTU(title,username)
+
+    if(eMedia) throw new HttpException('Media já existe',HttpStatus.CONFLICT)
+
     return  await this.mediasRepository.update(id,body)
 
   }
@@ -60,13 +58,13 @@ export class MediasService {
  //ok
   async remove(id: number) {
 
-    const eMedia = await this.mediasRepository.findUnique(id)
+    const eMedia = await this.mediasRepository.findOneWP(id)
 
-    if (!eMedia) {
-      throw new NotFoundException()
-    }
+    if (!eMedia) throw new HttpException("Media not found", HttpStatus.NOT_FOUND)
 
-    return this.mediasRepository.remove(id)
+    if (eMedia.publications.length > 0) throw new HttpException("Media em uso", HttpStatus.FORBIDDEN)
+
+    return await this.mediasRepository.remove(id)
   }
-
 }
+

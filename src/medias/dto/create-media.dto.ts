@@ -3,13 +3,13 @@ import { IsNotEmpty, IsString } from 'class-validator'; //add url quando re-usar
 
 export class CreateMediaDto {
 
-    @IsNotEmpty()
     @IsString()
+    @IsNotEmpty()
     title: string
     //IsUrl() 
 
-    @IsNotEmpty()
     @IsString()
+    @IsNotEmpty()
     username: string
 
 }

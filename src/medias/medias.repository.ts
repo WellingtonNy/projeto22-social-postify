@@ -1,50 +1,71 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 
 @Injectable()
 export class MediasRepository {
-  constructor(private readonly prisma: PrismaService){}
+  
 
 
-  async create(body: CreateMediaDto) {
+  constructor(private readonly prisma: PrismaService){ }
 
-    return await this.prisma.media.create({ data: body })
+  findOneWP(id: number) {
+    return this.prisma.media.findUnique({
+      where: {id},
+      include:{
+        publications: true
+      }
+    })
+  }
+
+  create(body: CreateMediaDto) {
+
+    return  this.prisma.media.create({ data: body })
 
   }
 
 
 
-  async findAll() {
+  findAll() {
 
-    return await this.prisma.media.findMany()
+    return  this.prisma.media.findMany()
+
+  }
+
+
+  async findByTU(title: string, username: string) {
+    return this.prisma.media.findFirst({
+      where: {
+        title: title,
+        username: username,
+      },
+    });
+  }
+  
+
+
+   findUnique(id: number) {
+
+    return  this.prisma.media.findUnique({ where: { id } })
 
   }
 
 
 
-  async findUnique(id: number) {
+   update(id: number, body: UpdateMediaDto) {
 
-    return await this.prisma.media.findUnique({ where: { id } })
-
-  }
-
-
-
-  async update(id: number, body: UpdateMediaDto) {
-
-    return await this.prisma.media.update({ where: { id },
+    return  this.prisma.media.update({ where: { id },
       data: body })
 
   }
 
 
 
-  async remove(id: number) {
+  remove(id: number) {
 
-    return await this.prisma.media.delete({ where: { id } })
+    return  this.prisma.media.delete({ where: { id } })
 
   }
 
