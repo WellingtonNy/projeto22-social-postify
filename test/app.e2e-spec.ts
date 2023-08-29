@@ -11,6 +11,8 @@ import { CreatePostDto } from '../src/posts/dto/create-post.dto';
 import { PostFactory } from './factories/post.factory';
 import { UpdatePostDto } from '../src/posts/dto/update-post.dto';
 import { PublicationFactory } from './factories/publication.factory';
+import { CreatePublicationDto } from '../src/publications/dto/create-publication.dto';
+import { UpdatePublicationDto } from '../src/publications/dto/update-publication.dto';
 
 
 describe('AppController (e2e)', () => {
@@ -334,8 +336,220 @@ it("GET /posts - todos os posts", async () => {
   })
 
 
-});
+
+
+  it('POST /publications - cria publi..', async () => {
+    
+
+    const { id: mediaId } = await new MediaFactory(prisma)
+      .withTitle("X")
+      .withUsername("not.not")
+      .persist();
+
+    const { id: postId } = await new PostFactory(prisma)
+      .withTitle("Post")
+      .withText("Esse é o post")
+      .persist()
+
+    
+    const tresDias = E2EUtils.generateDate(3)
+    const publicationDTO: CreatePublicationDto = new CreatePublicationDto({
+      mediaId,
+      postId,
+      date: tresDias.toISOString()
+    })
+
+    await request(app.getHttpServer())
+      .post('/publications')
+      .send(publicationDTO)
+      .expect(HttpStatus.CREATED)
+
+    const publications = await prisma.publication.findMany();
+    expect(publications).toHaveLength(1)
+    const publication = publications[0]
+    expect(publication).toEqual({
+      id: expect.any(Number),
+      postId: postId,
+      mediaId: mediaId,
+      date: tresDias
+    })
+  })
+
+
+
+  it("POST /publications - publi vazia", async () => {
+    
+    const publicationDTO: CreatePublicationDto = new CreatePublicationDto()
+
+    await request(app.getHttpServer())
+      .post('/publications')
+      .send(publicationDTO)
+      .expect(HttpStatus.BAD_REQUEST)
+
+  })
+
+
+
+  it("GET /publications - get all publi", async () => {
+
+    const { id: mediaId } = await new MediaFactory(prisma)
+      .withTitle("X")
+      .withUsername("not.not")
+      .persist();
+
+    const { id: postId } = await new PostFactory(prisma)
+      .withTitle("Post")
+      .withText("Esse é o post")
+      .persist()
+
+    const tresDias = E2EUtils.generateDate(3)
+    const quatroDias = E2EUtils.generateDate(4)
+
+    await new PublicationFactory(prisma)
+      .withPostId(postId)
+      .withMediaId(mediaId)
+      .withDate(tresDias)
+      .persist();
+
+    await new PublicationFactory(prisma)
+      .withPostId(postId)
+      .withMediaId(mediaId)
+      .withDate(quatroDias)
+      .persist()
+
+    const { status, body } = await request(app.getHttpServer()).get("/publications")
+  
+    expect(status).toBe(HttpStatus.OK)
+
+    expect(body).toHaveLength(2)
+
+  })
 
 
 
 
+  it("GET /publications/:id - get publi por id", async () => {
+    
+    const { id: mediaId } = await new MediaFactory(prisma)
+      .withTitle("X")
+      .withUsername("not.not")
+      .persist()
+
+    const { id: postId } = await new PostFactory(prisma)
+      .withTitle("Post")
+      .withText("Esse é o post")
+      .persist()
+
+    const tresDias = E2EUtils.generateDate(3)
+    const firstPublication = await new PublicationFactory(prisma)
+      .withMediaId(mediaId)
+      .withPostId(postId)
+      .withDate(tresDias)
+      .persist()
+
+    const quatroDias = E2EUtils.generateDate(4)
+    await new PublicationFactory(prisma)
+      .withMediaId(mediaId)
+      .withPostId(postId)
+      .withDate(quatroDias)
+      .persist()
+
+    const { status, body } = await request(app.getHttpServer()).get(`/publications/${firstPublication.id}`)
+    expect(status).toBe(HttpStatus.OK)
+    expect(body).toEqual({
+      ...firstPublication, date: firstPublication.date.toISOString()
+    })
+  })
+
+
+
+  it('PUT /publications - att publi', async () => {
+
+    const { id: mediaId } = await new MediaFactory(prisma)
+      .withTitle("X")
+      .withUsername("not.not")
+      .persist();
+
+    const { id: postId } = await new PostFactory(prisma)
+      .withTitle("Post")
+      .withText("Esse é o Post")
+      .persist();
+
+    const today = new Date()
+    const tresDias = new Date(today.setDate(today.getDate() + 3))
+
+    const publication = await new PublicationFactory(prisma)
+      .withMediaId(mediaId)
+      .withPostId(postId)
+      .withDate(tresDias)
+      .persist()
+
+    const quatroDias = new Date(today.setDate(today.getDate() + 4))
+    const updatePublicationDTO = new UpdatePublicationDto({
+      date: quatroDias.toISOString()
+    })
+
+    await request(app.getHttpServer())
+      .put(`/publications/${publication.id}`)
+      .send(updatePublicationDTO)
+      .expect(HttpStatus.OK)
+
+    const emoPubli = await prisma.publication.findUnique({
+      where: { id: publication.id }
+    })
+
+    expect(emoPubli).toEqual({
+      ...publication, date: quatroDias
+    })
+
+  })
+
+
+
+  it('DELETE /publications - delete publi', async () => {
+    
+
+    const { id: mediaId } = await new MediaFactory(prisma)
+      .withTitle("X")
+      .withUsername("not.not")
+      .persist()
+
+      
+    const { id: postId } = await new PostFactory(prisma)
+      .withTitle("Post")
+      .withText("Esseé o post")
+      .persist()
+
+
+    const today = new Date()
+
+    const tresDias = new Date(today.setDate(today.getDate() + 3))
+
+    const publi = await new PublicationFactory(prisma)
+      .withMediaId(mediaId)
+      .withPostId(postId)
+      .withDate(tresDias)
+      .persist()
+
+    await request(app.getHttpServer())
+      .delete(`/publications/${publi.id}`)
+      .expect(HttpStatus.OK)
+
+    const ePubli = await prisma.publication.findMany()
+    expect(ePubli).toHaveLength(0)
+
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+})
