@@ -14,7 +14,6 @@ export class CreatePublicationDto {
 
   
   constructor(params?: Partial<CreatePublicationDto>) {
-
     Object.assign(this, params)
 
   }

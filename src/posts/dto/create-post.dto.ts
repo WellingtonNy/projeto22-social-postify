@@ -16,4 +16,7 @@ export class CreatePostDto {
     @IsOptional()
     image:string
     
+    constructor(params?: Partial<CreatePostDto>) {
+        Object.assign(this, params);
+      }
 }
