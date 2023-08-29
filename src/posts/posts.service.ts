@@ -1,26 +1,64 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { PostsRepository } from './posts.repository';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 
+
 @Injectable()
+
 export class PostsService {
-  create(createPostDto: CreatePostDto) {
-    return 'This action adds a new post';
+
+constructor(private readonly PRepository: PostsRepository) {}
+
+
+
+  async create(body: CreatePostDto) {
+
+    return this.PRepository.create(body)
+
   }
 
-  findAll() {
-    return `This action returns all posts`;
+
+
+  async findAll() {
+
+    return this.PRepository.findAll()
+
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+
+
+  async findOne(id: number) {
+
+    const ePost = await this.PRepository.findOne(id)
+    if (!ePost) throw new HttpException(`Post não encontrado`, HttpStatus.NOT_FOUND)
+
+    return ePost
+
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+
+
+  async update(id: number, body: UpdatePostDto) {
+
+    await this.findOne(id)
+
+    return this.PRepository.update(id, body)
+
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+
+
+  async remove(id: number) {
+
+    const ePost = await this.PRepository.findOneWithPublications(id)
+
+    if (!ePost) throw new HttpException(`Post not found`, HttpStatus.NOT_FOUND)
+
+    if (ePost.publications.length > 0) throw new HttpException(`Post em uso`, HttpStatus.FORBIDDEN)
+
+    return this.PRepository.remove(id)
+
   }
+
 }
