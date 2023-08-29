@@ -6,24 +6,24 @@ import { MediasRepository } from './medias.repository';
 
 @Injectable()
 export class MediasService {
-  constructor(private readonly mediasRepository: MediasRepository) {}
+  constructor(private readonly mRepository: MediasRepository) {}
 
 
   //ok
   async create(body: CreateMediaDto) {
 const {title,username} = body
-const eMedia = await this.mediasRepository.findByTU(title,username)
+const eMedia = await this.mRepository.findByTU(title,username)
 
     if(eMedia) throw new HttpException('Media já existe',HttpStatus.CONFLICT)
 
-    return await this.mediasRepository.create(body)  
+    return await this.mRepository.create(body)  
   }
 
 
   //ok
   async findAll() {
 
-    return await this.mediasRepository.findAll()
+    return await this.mRepository.findAll()
 
   }
 
@@ -31,7 +31,7 @@ const eMedia = await this.mediasRepository.findByTU(title,username)
   //ok
   async findOne(id: number) {
 
-    const eMedia = await this.mediasRepository.findUnique(id)
+    const eMedia = await this.mRepository.findUnique(id)
 
     if (!eMedia) {
       throw new HttpException( 'Media not found',HttpStatus.NOT_FOUND )
@@ -46,11 +46,11 @@ const eMedia = await this.mediasRepository.findByTU(title,username)
      await this.findOne(id)
 
     const {title,username} =body
-    const eMedia = await this.mediasRepository.findByTU(title,username)
+    const eMedia = await this.mRepository.findByTU(title,username)
 
     if(eMedia) throw new HttpException('Media já existe',HttpStatus.CONFLICT)
 
-    return  await this.mediasRepository.update(id,body)
+    return  await this.mRepository.update(id,body)
 
   }
 
@@ -58,13 +58,13 @@ const eMedia = await this.mediasRepository.findByTU(title,username)
  //ok
   async remove(id: number) {
 
-    const eMedia = await this.mediasRepository.findOneWP(id)
+    const eMedia = await this.mRepository.findOneWP(id)
 
     if (!eMedia) throw new HttpException("Media not found", HttpStatus.NOT_FOUND)
 
     if (eMedia.publications.length > 0) throw new HttpException("Media em uso", HttpStatus.FORBIDDEN)
 
-    return await this.mediasRepository.remove(id)
+    return await this.mRepository.remove(id)
   }
 }
 
